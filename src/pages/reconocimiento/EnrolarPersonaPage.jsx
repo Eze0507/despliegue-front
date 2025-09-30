@@ -24,6 +24,23 @@ const EnrolarPersonaPage = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
+  // Asegurar que el stream se conecte al elemento <video> cuando esté montado
+  useEffect(() => {
+    if (cameraActive && stream && videoRef.current) {
+      try {
+        videoRef.current.srcObject = stream;
+        const playPromise = videoRef.current.play();
+        if (playPromise && typeof playPromise.then === 'function') {
+          playPromise.catch(() => {
+            // Ignorar errores de autoplay; el botón Capturar implica interacción del usuario
+          });
+        }
+      } catch (_) {
+        // noop
+      }
+    }
+  }, [cameraActive, stream]);
+
   // Cargar personas según el tipo seleccionado
   const loadPersons = async (type) => {
     setLoading(true);
@@ -90,9 +107,13 @@ const EnrolarPersonaPage = () => {
       });
       setStream(mediaStream);
       setCameraActive(true);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
+      // En algunos navegadores, conectar el stream tras un pequeño retraso mejora la fiabilidad
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+          videoRef.current.play?.();
+        }
+      }, 100);
     } catch (err) {
       setError('Error al acceder a la cámara: ' + err.message);
     }
@@ -303,6 +324,7 @@ const EnrolarPersonaPage = () => {
                   className="w-full h-64 object-cover rounded-lg border border-gray-200"
                   autoPlay
                   muted
+                  playsInline
                 />
                 <canvas ref={canvasRef} className="hidden" />
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
