@@ -267,7 +267,13 @@ const ReconocimientoPage = () => {
                     <p><strong>Marca:</strong> {result.vehiculo.marca}</p>
                     <p><strong>Modelo:</strong> {result.vehiculo.modelo}</p>
                     <p><strong>Color:</strong> {result.vehiculo.color}</p>
-                    <p><strong>Propietario:</strong> {result.vehiculo.persona?.nombre || 'N/A'}</p>
+                    <p><strong>Propietario:</strong> {
+                      result.lectura?.propietario || 
+                      result.vehiculo?.persona_nombre || 
+                      result.vehiculo?.persona?.nombre_completo ||
+                      result.vehiculo?.persona?.nombre ||
+                      'N/A'
+                    }</p>
                   </div>
                 )}
               </div>
