@@ -25,6 +25,7 @@ import Contratos from "../pages/contratos/ContratoPage.jsx";
 import Incidentes from "../pages/incidentes/IncidentePage.jsx";
 import Multas from "../pages/multas/MultaPage.jsx";
 import Expensas from "../pages/expensas/ExpensaPage.jsx";
+import ObjetosPerdidos from "../pages/objetosPerdidos/ObjetoPerdidoPage.jsx";
 import PagoSuccessPage from "../pages/pago/PagoSuccessPage.jsx";
 import PagoCancelPage from "../pages/pago/PagoCancelPage.jsx";
 import PagoDebugPage from "../pages/pago/PagoDebugPage.jsx";
@@ -77,6 +78,7 @@ const AppRouter = () => {
           <Route path="incidentes" element={<Incidentes />} />
           <Route path="multas" element={<Multas />} />
           <Route path="expensas" element={<Expensas />} />
+          <Route path="objetos-perdidos" element={<ObjetosPerdidos />} />
         </Route>
 
         {/* Redirección por defecto */}

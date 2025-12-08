@@ -75,6 +75,7 @@ const Sidebar = ({ sidebarOpen }) => {
         { name: "Mascotas", path: "/admin/mascotas" },
         { name: "Visitas", path: "/admin/visitas" },
         { name: "Incidentes", path: "/admin/incidentes" },
+        { name: "Objetos Perdidos", path: "/admin/objetos-perdidos" },
       ],
     },
     {
