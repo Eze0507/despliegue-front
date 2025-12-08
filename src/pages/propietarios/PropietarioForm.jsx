@@ -1,5 +1,5 @@
 // src/pages/propietarios/PropietarioForm.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import StyledForm from "../../components/form";
 import Button from "../../components/button";
 import { createUser } from "../../api/userApi";
@@ -15,11 +15,19 @@ const PropietarioForm = ({ onSubmit, onCancel, initialData, loading }) => {
     CI: "",
     fecha_nacimiento: "",
     email: "", // Campo para crear usuario
+    user: null
   });
+
+  const [userCreated, setUserCreated] = useState(false);
+  const userIdRef = useRef(null); // Mantener el ID del usuario creado
 
   useEffect(() => {
     if (initialData) {
       console.log('Datos iniciales recibidos en PropietarioForm:', initialData);
+      const userId = initialData.user || null;
+      if (userId) {
+        userIdRef.current = userId;
+      }
       setFormData({
         nombre: initialData.nombre || "",
         apellido: initialData.apellido || "",
@@ -31,10 +39,12 @@ const PropietarioForm = ({ onSubmit, onCancel, initialData, loading }) => {
         fecha_nacimiento: initialData.fecha_nacimiento ? 
           initialData.fecha_nacimiento.split('T')[0] : "",
         email: "", // Siempre vacío para no interferir con el formulario
+        user: userId,
       });
     } else {
       // Resetear formulario cuando no hay datos iniciales
-      setFormData({
+      // NO resetear userIdRef ni user si ya se creó un usuario
+      setFormData(prev => ({
         nombre: "",
         apellido: "",
         telefono: "",
@@ -44,7 +54,8 @@ const PropietarioForm = ({ onSubmit, onCancel, initialData, loading }) => {
         CI: "",
         fecha_nacimiento: "",
         email: "",
-      });
+        user: userIdRef.current || null, // Mantener el user si existe en ref
+      }));
     }
   }, [initialData]);
 
@@ -61,6 +72,19 @@ const PropietarioForm = ({ onSubmit, onCancel, initialData, loading }) => {
     e.preventDefault();
     // Excluir el campo email del envío al backend
     const { email, ...dataToSubmit } = formData;
+    
+    // Si el user en formData es null pero tenemos un userIdRef, usar ese
+    if (!dataToSubmit.user && userIdRef.current) {
+      dataToSubmit.user = userIdRef.current;
+      console.log('⚠️ Usando userIdRef porque formData.user era null');
+    }
+    
+    console.log('=== DATOS A ENVIAR AL BACKEND ===');
+    console.log('formData completo:', formData);
+    console.log('userIdRef.current:', userIdRef.current);
+    console.log('dataToSubmit (sin email):', dataToSubmit);
+    console.log('Campo user:', dataToSubmit.user, 'Tipo:', typeof dataToSubmit.user);
+    console.log('================================');
     onSubmit(dataToSubmit);
   };
 
@@ -77,8 +101,9 @@ const PropietarioForm = ({ onSubmit, onCancel, initialData, loading }) => {
       // Generar password: teléfono + primera letra del nombre + primera letra del apellido
       const password = `${formData.telefono}${formData.nombre.charAt(0).toLowerCase()}${formData.apellido.charAt(0).toLowerCase()}`;
       
-      // Role ID para Propietario
-      const role_id = 3;
+      // Role ID para Propietario - Cambiar según tu base de datos
+      // Verifica en tu BD cuál es el ID correcto del rol "Propietario"
+      const role_id = 2; // Usualmente: 1=Admin, 2=Propietario, 3=Empleado
 
       const userData = {
         username,
@@ -86,16 +111,39 @@ const PropietarioForm = ({ onSubmit, onCancel, initialData, loading }) => {
         password,
         role_id
       };
+      
+      console.log('Role ID enviado:', role_id);
 
       console.log('Creando usuario con datos:', userData);
       
       const result = await createUser(userData);
       console.log('Usuario creado exitosamente:', result);
+      console.log('Estructura completa del resultado:', JSON.stringify(result, null, 2));
+
+      const newUserId = result.id || result.data?.id || result.user?.id;
+      console.log('ID de usuario extraído:', newUserId, 'Tipo:', typeof newUserId);
+
+      if (!newUserId) {
+        throw new Error('No se pudo obtener el ID del usuario creado');
+      }
+
+      // Guardar en ref para acceso inmediato
+      userIdRef.current = Number(newUserId);
       
-      alert('Usuario creado exitosamente');
+      setFormData(prev => {
+        const newData = { 
+          ...prev, 
+          user: Number(newUserId),  // Asegurar que sea número
+          email: ""
+        };
+        console.log('FormData actualizado con user:', newData.user);
+        console.log('userIdRef.current:', userIdRef.current);
+        return newData;
+      });
+
+      setUserCreated(true);
       
-      // Limpiar el campo email después de crear el usuario
-      setFormData(prev => ({ ...prev, email: "" }));
+      alert(`Usuario creado y vinculado! ID: ${newUserId}`);
       
     } catch (error) {
       console.error('Error al crear usuario:', error);
@@ -186,12 +234,15 @@ const PropietarioForm = ({ onSubmit, onCancel, initialData, loading }) => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="ejemplo@correo.com"
+              disabled={userCreated}
+              placeholder={userCreated ? "Usuario ya creado" : "ejemplo@correo.com"}
               className="w-full px-3 py-2 rounded-md bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Este campo solo se usa para crear un usuario del sistema
-            </p>
+            {userCreated && (
+              <p className="text-xs text-green-600 font-bold mt-1">
+                  ✓ Usuario de sistema vinculado correctamente
+              </p>
+          )}
           </div>
 
           {/* Fecha de Nacimiento */}
@@ -282,15 +333,14 @@ const PropietarioForm = ({ onSubmit, onCancel, initialData, loading }) => {
       {/* Botones */}
       <div className="flex justify-between items-center pt-4 mt-6 border-t">
         {/* Botón para crear usuario */}
-        <Button 
-          variant="guardar" 
+        <button
           type="button"
           onClick={handleCreateUser}
-          disabled={loading || !formData.email}
-          className="bg-blue-600 hover:bg-blue-700"
+          disabled={loading || !formData.email || userCreated}
+          className="align-middle select-none font-sans font-bold text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 px-6 bg-blue-600 text-white shadow-md hover:bg-blue-700 focus:opacity-[0.85] active:opacity-[0.85] rounded-full"
         >
-          CREAR USUARIO
-        </Button>
+          {userCreated ? "USUARIO VINCULADO" : "CREAR USUARIO"}
+        </button>
         
         {/* Botones de formulario */}
         <div className="flex space-x-2">

@@ -39,7 +39,8 @@ export const createPropietario = async (propietarioData) => {
       sexo: propietarioData.sexo || '',
       CI: propietarioData.CI || '',
       fecha_nacimiento: propietarioData.fecha_nacimiento || '',
-      estado: propietarioData.estado || 'A'
+      estado: propietarioData.estado || 'A',
+      user: propietarioData.user || null
     };
     
     // Si hay archivo, usar FormData, si no, usar JSON
@@ -51,7 +52,11 @@ export const createPropietario = async (propietarioData) => {
       
       // Agregar todos los campos directamente
       Object.keys(dataToSend).forEach(key => {
-        if (dataToSend[key] !== null && dataToSend[key] !== undefined) {
+        // Para el campo user, solo agregar si tiene valor
+        if (key === 'user' && dataToSend[key]) {
+          formData.append(key, String(dataToSend[key]));
+          console.log(`Agregando ${key}:`, dataToSend[key]);
+        } else if (key !== 'user' && dataToSend[key] !== null && dataToSend[key] !== undefined) {
           formData.append(key, dataToSend[key]);
           console.log(`Agregando ${key}:`, dataToSend[key]);
         }
@@ -71,8 +76,12 @@ export const createPropietario = async (propietarioData) => {
       return response.data;
     } else {
       // Usar JSON para datos sin archivos
-      console.log('Enviando como JSON:', dataToSend);
-      const response = await apiClient.post('propietarios/', dataToSend);
+      // Filtrar campos null antes de enviar
+      const cleanedData = Object.fromEntries(
+        Object.entries(dataToSend).filter(([_, value]) => value !== null)
+      );
+      console.log('Enviando como JSON:', cleanedData);
+      const response = await apiClient.post('propietarios/', cleanedData);
       return response.data;
     }
   } catch (error) {
@@ -97,7 +106,8 @@ export const updatePropietario = async (propietarioId, propietarioData) => {
       sexo: propietarioData.sexo || '',
       CI: propietarioData.CI || '',
       fecha_nacimiento: propietarioData.fecha_nacimiento || '',
-      estado: propietarioData.estado || 'A'
+      estado: propietarioData.estado || 'A',
+      user: propietarioData.user || null
     };
     
     // Si hay archivo, usar FormData, si no, usar JSON
@@ -109,7 +119,10 @@ export const updatePropietario = async (propietarioId, propietarioData) => {
       
       // Agregar todos los campos directamente
       Object.keys(dataToSend).forEach(key => {
-        if (dataToSend[key] !== null && dataToSend[key] !== undefined) {
+        // Para el campo user, solo agregar si tiene valor
+        if (key === 'user' && dataToSend[key]) {
+          formData.append(key, String(dataToSend[key]));
+        } else if (key !== 'user' && dataToSend[key] !== null && dataToSend[key] !== undefined) {
           formData.append(key, dataToSend[key]);
         }
       });
@@ -122,7 +135,11 @@ export const updatePropietario = async (propietarioId, propietarioData) => {
       return response.data;
     } else {
       // Usar JSON para datos sin archivos
-      const response = await apiClient.put(`propietarios/${propietarioId}/`, dataToSend);
+      // Filtrar campos null antes de enviar
+      const cleanedData = Object.fromEntries(
+        Object.entries(dataToSend).filter(([_, value]) => value !== null)
+      );
+      const response = await apiClient.put(`propietarios/${propietarioId}/`, cleanedData);
       return response.data;
     }
   } catch (error) {
