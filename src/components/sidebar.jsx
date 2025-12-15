@@ -88,8 +88,8 @@ const Sidebar = ({ sidebarOpen }) => {
         { name: "Reportes", path: "/admin/reportes" },
         { name: "Expensa", path: "/admin/expensas" },
         { name: "Servicios", path: "/admin/servicios" },
-        { name: "Reserva", path: "/admin/reservas" },
-        { name: "Areas sociales", path: "/admin/areas-sociales" },
+        { name: "Áreas Comunes", path: "/admin/areas-comunes" },
+        { name: "Reservas", path: "/admin/reservas" },
       ],
     },
     {

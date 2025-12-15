@@ -43,10 +43,34 @@ export function useAuth() {
       const userData = parseJwt(access);
       console.log("Datos decodificados del token:", userData);
       
+      // Intentar guardar el rol desde el token
+      let roleSet = false;
       if (userData && userData.role) {
         localStorage.setItem("userRole", userData.role);
+        console.log("✅ Rol guardado desde token.role:", userData.role);
+        roleSet = true;
       } else if (userData && userData.groups && userData.groups.length > 0) {
         localStorage.setItem("userRole", userData.groups[0]);
+        console.log("✅ Rol guardado desde token.groups:", userData.groups[0]);
+        roleSet = true;
+      }
+      
+      // Si no hay rol en el token, obtenerlo de la API
+      if (!roleSet) {
+        console.log("⚠️ No hay rol en el token, obteniendo desde API...");
+        try {
+          const userResponse = await axios.get(`${baseUrl}users/`, {
+            headers: { Authorization: `Bearer ${access}` }
+          });
+          const users = userResponse.data.results || userResponse.data;
+          const currentUser = users.find(u => u.username === username);
+          if (currentUser && currentUser.role) {
+            localStorage.setItem("userRole", currentUser.role);
+            console.log("✅ Rol guardado desde API:", currentUser.role);
+          }
+        } catch (apiError) {
+          console.error("❌ Error al obtener rol desde API:", apiError);
+        }
       }
 
       return true; 

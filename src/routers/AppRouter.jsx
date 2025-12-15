@@ -26,6 +26,8 @@ import Incidentes from "../pages/incidentes/IncidentePage.jsx";
 import Multas from "../pages/multas/MultaPage.jsx";
 import Expensas from "../pages/expensas/ExpensaPage.jsx";
 import ObjetosPerdidos from "../pages/objetosPerdidos/ObjetoPerdidoPage.jsx";
+import AreasComunes from "../pages/areasComunes/AreaComunPage.jsx";
+import Reservas from "../pages/reservas/ReservaPage.jsx";
 import PagoSuccessPage from "../pages/pago/PagoSuccessPage.jsx";
 import PagoCancelPage from "../pages/pago/PagoCancelPage.jsx";
 import PagoDebugPage from "../pages/pago/PagoDebugPage.jsx";
@@ -79,6 +81,8 @@ const AppRouter = () => {
           <Route path="multas" element={<Multas />} />
           <Route path="expensas" element={<Expensas />} />
           <Route path="objetos-perdidos" element={<ObjetosPerdidos />} />
+          <Route path="areas-comunes" element={<AreasComunes />} />
+          <Route path="reservas" element={<Reservas />} />
         </Route>
 
         {/* Redirección por defecto */}

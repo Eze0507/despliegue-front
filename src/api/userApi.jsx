@@ -27,6 +27,30 @@ export const fetchAllUsers = async () => {
   }
 };
 
+export const fetchCurrentUser = async () => {
+  try {
+    // Primero intentar obtener el username del localStorage
+    const username = localStorage.getItem('username');
+    if (!username) {
+      throw new Error('No hay usuario en sesión');
+    }
+    
+    // Obtener todos los usuarios y buscar el actual
+    const response = await apiClient.get('users/');
+    const users = response.data.results || response.data;
+    const currentUser = users.find(user => user.username === username);
+    
+    if (!currentUser) {
+      throw new Error('Usuario no encontrado');
+    }
+    
+    return currentUser;
+  } catch (error) {
+    console.error('Error al obtener usuario actual:', error);
+    throw error;
+  }
+};
+
 export const fetchAllRoles = async () => {
   try {
     const response = await apiClient.get('groupsAux/');
